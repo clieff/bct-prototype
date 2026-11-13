@@ -10,8 +10,6 @@ from threading import Lock
 from .model_validation import has_valid_model_files, is_valid_model_file
 
 logger = logging.getLogger(__name__)
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-LOCAL_TTS_MODEL_DIR = PROJECT_ROOT / "models" / "africa-tts"
 TTS_REPO_ID = "AfriSpeech/africa-tts"
 TTS_MODEL_FILES = ("config.yaml", "model.safetensors", "tokenizer.json")
 TTS_MODEL_FILE_MIN_SIZES = {
@@ -57,6 +55,40 @@ def _normalize_language_code(lang_code: str) -> str:
     return LANGUAGE_ALIASES.get(normalized, normalized)
 
 
+def _valid_tts_directory(directory: Path) -> bool:
+    voices_dir = directory / "voices"
+    voices = list(voices_dir.rglob("*.wav")) if voices_dir.is_dir() else []
+    return (
+        has_valid_model_files(directory, TTS_MODEL_FILE_MIN_SIZES)
+        and any(
+            voice.name == "ewo.wav" and is_valid_model_file(voice, 1_000)
+            for voice in voices
+        )
+        and all(is_valid_model_file(voice, 1_000) for voice in voices)
+    )
+
+
+def prepare_model_cache() -> Path:
+    """Download and validate Africa TTS in Hugging Face's default model cache."""
+    from huggingface_hub import snapshot_download
+
+    allow_patterns = [*TTS_MODEL_FILES, "voices/*.wav"]
+    snapshot_path = Path(
+        snapshot_download(repo_id=TTS_REPO_ID, allow_patterns=allow_patterns)
+    )
+    if not _valid_tts_directory(snapshot_path):
+        snapshot_path = Path(
+            snapshot_download(
+                repo_id=TTS_REPO_ID,
+                allow_patterns=allow_patterns,
+                force_download=True,
+            )
+        )
+    if not _valid_tts_directory(snapshot_path):
+        raise FileNotFoundError("Le modèle Africa TTS téléchargé est incomplet ou invalide.")
+    return snapshot_path
+
+
 def _get_engine():
     global _engine
     if _engine is None:
@@ -64,57 +96,8 @@ def _get_engine():
             if _engine is None:
                 try:
                     from africa_tts import AfricaTTS
-                    from huggingface_hub import snapshot_download
-
-                    def valid_tts_directory(directory: Path) -> bool:
-                        voices_dir = directory / "voices"
-                        voices = list(voices_dir.rglob("*.wav")) if voices_dir.is_dir() else []
-                        return (
-                            has_valid_model_files(directory, TTS_MODEL_FILE_MIN_SIZES)
-                            and any(
-                                voice.name == "ewo.wav"
-                                and is_valid_model_file(voice, 1_000)
-                                for voice in voices
-                            )
-                            and all(is_valid_model_file(voice, 1_000) for voice in voices)
-                        )
-
-                    try:
-                        if not valid_tts_directory(LOCAL_TTS_MODEL_DIR):
-                            raise FileNotFoundError(
-                                f"Le modèle vocal local {LOCAL_TTS_MODEL_DIR} est absent, "
-                                "incomplet ou contient des pointeurs Git LFS."
-                            )
-                        _engine = AfricaTTS.load(
-                            name=str(LOCAL_TTS_MODEL_DIR), download=False
-                        )
-                    except Exception as local_error:
-                        logger.info(
-                            "Modèle Africa TTS local indisponible (%s); recherche dans le "
-                            "cache Hugging Face puis téléchargement si nécessaire.",
-                            local_error,
-                        )
-                        snapshot_path = Path(
-                            snapshot_download(
-                                repo_id=TTS_REPO_ID,
-                                allow_patterns=[*TTS_MODEL_FILES, "voices/*.wav"],
-                            )
-                        )
-                        if not valid_tts_directory(snapshot_path):
-                            snapshot_path = Path(
-                                snapshot_download(
-                                    repo_id=TTS_REPO_ID,
-                                    allow_patterns=[*TTS_MODEL_FILES, "voices/*.wav"],
-                                    force_download=True,
-                                )
-                            )
-                        if not valid_tts_directory(snapshot_path):
-                            raise FileNotFoundError(
-                                "Le modèle Africa TTS téléchargé est incomplet ou invalide."
-                            )
-                        _engine = AfricaTTS.load(
-                            name=str(snapshot_path), download=False
-                        )
+                    prepare_model_cache()
+                    _engine = AfricaTTS.load(name=TTS_REPO_ID, download=True)
                 except Exception as error:
                     logger.exception("Impossible de charger Africa TTS.")
                     raise AudioGenerationError(

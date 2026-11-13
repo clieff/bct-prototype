@@ -12,19 +12,11 @@ from .entity_detector import (
     find_numeric_matches,
 )
 from .glossary import Glossary
-from .model_validation import has_valid_model_files, is_valid_model_file
+from .model_validation import has_valid_model_files
 
 
 logger = logging.getLogger(__name__)
 LanguagePair = Tuple[str, str]
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-LOCAL_MODELS_DIR = PROJECT_ROOT / "models"
-TRANSLATION_MODELS_DIR = LOCAL_MODELS_DIR / "flagship-ai" / "cameroon-int8"
-OPUS_EN_FR_MODEL_DIR = LOCAL_MODELS_DIR / "opus-mt-en-fr"
-LOCAL_TRANSFORMERS_MODEL_DIRS = {
-    ("en", "fr"): OPUS_EN_FR_MODEL_DIR,
-    ("fr", "en"): LOCAL_MODELS_DIR / "opus-mt-fr-en",
-}
 TRANSLATION_MODEL_FILE_MIN_SIZES = {
     "config.json": 100,
     "model.bin": 1_000_000,
@@ -33,27 +25,22 @@ TRANSLATION_MODEL_FILE_MIN_SIZES = {
     "tokenizer_config.json": 100,
     "vocab.json": 10_000,
 }
-MARIAN_MODEL_FILE_MIN_SIZES = {
-    "config.json": 100,
-    "generation_config.json": 1,
-    "source.spm": 10_000,
-    "target.spm": 10_000,
-    "tokenizer_config.json": 1,
-    "vocab.json": 10_000,
-}
-MARIAN_WEIGHT_FILES = ("pytorch_model.bin", "model.safetensors")
-MARIAN_WEIGHT_MIN_SIZE = 1_000_000
 TRANSFORMERS_MODEL_IDS = {
     ("en", "fr"): "Helsinki-NLP/opus-mt-en-fr",
     ("fr", "en"): "Helsinki-NLP/opus-mt-fr-en",
 }
-
-
-def _has_valid_marian_model(directory: Path) -> bool:
-    return has_valid_model_files(directory, MARIAN_MODEL_FILE_MIN_SIZES) and any(
-        is_valid_model_file(directory / name, MARIAN_WEIGHT_MIN_SIZE)
-        for name in MARIAN_WEIGHT_FILES
-    )
+TRANSFORMERS_MODEL_FILES = (
+    "config.json",
+    "generation_config.json",
+    "source.spm",
+    "target.spm",
+    "tokenizer_config.json",
+    "vocab.json",
+)
+TRANSFORMERS_MODEL_WEIGHTS = {
+    ("en", "fr"): "pytorch_model.bin",
+    ("fr", "en"): "model.safetensors",
+}
 
 
 class TranslationResult:
@@ -127,6 +114,37 @@ class LockedTranslator:
             else:
                 status[language] = "not_loaded"
         return status
+
+    def prepare_model_cache(self) -> None:
+        """Download every configured translation model into Hugging Face's default cache."""
+        from huggingface_hub import snapshot_download
+
+        jobs = [
+            (
+                model_id,
+                [*TRANSFORMERS_MODEL_FILES, TRANSFORMERS_MODEL_WEIGHTS[pair]],
+            )
+            for pair, model_id in TRANSFORMERS_MODEL_IDS.items()
+        ]
+        custom_folders = dict.fromkeys(
+            folder
+            for pair, folder in self.model_pairs.items()
+            if pair not in TRANSFORMERS_MODEL_IDS
+        )
+        jobs.extend(
+            (self.REPO_ID, [f"{folder}/*"])
+            for folder in custom_folders
+        )
+
+        for repo_id, allow_patterns in jobs:
+            try:
+                snapshot_download(repo_id=repo_id, allow_patterns=allow_patterns)
+            except Exception:
+                logger.exception(
+                    "Préchargement Hugging Face impossible pour %s (%s).",
+                    repo_id,
+                    ", ".join(allow_patterns),
+                )
 
     @staticmethod
     def _select_non_overlapping_spans(spans):
@@ -202,29 +220,8 @@ class LockedTranslator:
                     from transformers import MarianMTModel, MarianTokenizer
 
                     model_id = TRANSFORMERS_MODEL_IDS[pair]
-                    local_model_dir = LOCAL_TRANSFORMERS_MODEL_DIRS[pair]
-                    try:
-                        if not _has_valid_marian_model(local_model_dir):
-                            raise FileNotFoundError(
-                                f"Le modèle local {local_model_dir} est absent, incomplet "
-                                "ou contient des pointeurs Git LFS."
-                            )
-                        tokenizer = MarianTokenizer.from_pretrained(
-                            str(local_model_dir), local_files_only=True
-                        )
-                        model = MarianMTModel.from_pretrained(
-                            str(local_model_dir), local_files_only=True
-                        )
-                    except Exception as local_error:
-                        logger.info(
-                            "Modèle OPUS local indisponible (%s); chargement de %s depuis "
-                            "le cache Hugging Face ou le dépôt.",
-                            local_error,
-                            model_id,
-                        )
-                        # Sans chemin local, Transformers utilise le cache Hugging Face par défaut.
-                        tokenizer = MarianTokenizer.from_pretrained(model_id)
-                        model = MarianMTModel.from_pretrained(model_id)
+                    tokenizer = MarianTokenizer.from_pretrained(model_id)
+                    model = MarianMTModel.from_pretrained(model_id)
                     model.eval()
                     self._models[pair] = (tokenizer, model)
                     self._model_errors.pop(pair, None)
@@ -235,20 +232,11 @@ class LockedTranslator:
                 from transformers import MarianTokenizer
 
                 allow_patterns = [f"{folder}/*"]
-                model_path = TRANSLATION_MODELS_DIR / folder
-                model_is_ready = (
-                    model_path.is_dir()
-                    and ctranslate2.contains_model(str(model_path))
-                    and has_valid_model_files(
-                        model_path, TRANSLATION_MODEL_FILE_MIN_SIZES
-                    )
+                snapshot_path = snapshot_download(
+                    repo_id=self.REPO_ID,
+                    allow_patterns=allow_patterns,
                 )
-                if not model_is_ready:
-                    snapshot_path = snapshot_download(
-                        repo_id=self.REPO_ID,
-                        allow_patterns=allow_patterns,
-                    )
-                    model_path = Path(snapshot_path) / folder
+                model_path = Path(snapshot_path) / folder
                 model_is_ready = (
                     model_path.is_dir()
                     and ctranslate2.contains_model(str(model_path))
@@ -277,7 +265,7 @@ class LockedTranslator:
 
                 # Le tokenizer est fourni dans le même sous-dossier que model.bin.
                 tokenizer = MarianTokenizer.from_pretrained(
-                    str(model_path), local_files_only=True
+                    self.REPO_ID, subfolder=folder
                 )
                 translator = ctranslate2.Translator(
                     str(model_path),

@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import secrets
 import time
 from threading import Lock
@@ -14,6 +16,7 @@ from app.core.tts_engine import (
     AudioGenerationError,
     UnsupportedLanguageError,
     generate_audio,
+    prepare_model_cache as prepare_tts_model_cache,
     supported_languages,
 )
 from app.services import mock_financial
@@ -24,6 +27,25 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 glossary = Glossary()
 translator = LockedTranslator(glossary)
+logger = logging.getLogger(__name__)
+
+
+@app.on_event("startup")
+async def prepare_hugging_face_model_cache():
+    """Fetch translation and voice models into the default HF cache at startup."""
+
+    async def prepare(label: str, callback) -> None:
+        try:
+            await asyncio.to_thread(callback)
+        except Exception:
+            logger.exception("Préchargement des modèles %s impossible.", label)
+
+    await asyncio.gather(
+        prepare("de traduction", translator.prepare_model_cache),
+        prepare("Africa TTS", prepare_tts_model_cache),
+    )
+
+
 MAX_AMOUNT = 10_000_000
 TRANSFER_CONFIRMATION_TTL_SECONDS = 300
 _PENDING_TRANSFERS = {}
