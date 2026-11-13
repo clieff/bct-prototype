@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "version": "0.1.0",
+    "languages": ["ewondo", "fulfulde"]
+  },
+  "terms": [
+    {
+      "id": "amount",
+      "fr": "montant",
+      "en": "amount",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "transfer",
+      "fr": "transfert",
+      "en": "transfer",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "fee_transfer",
+      "fr": "frais de transfert",
+      "en": "transfer fee",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "fee",
+      "fr": "frais",
+      "en": "fee",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "balance",
+      "fr": "solde",
+      "en": "balance",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "withdrawal",
+      "fr": "retrait",
+      "en": "withdrawal",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "deposit",
+      "fr": "dépôt",
+      "en": "deposit",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    },
+    {
+      "id": "beneficiary",
+      "fr": "bénéficiaire",
+      "en": "beneficiary",
+      "ewondo": "TODO_VALIDATE",
+      "fulfulde": "TODO_VALIDATE",
+      "sensitive": true
+    }
+  ]
+}

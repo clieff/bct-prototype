@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "BCT — Bouclier de Confiance Transactionnelle",
+  "version": "0.1.4",
+  "description": "Traduit les textes visibles des pages web.",
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "BCT — Traduction",
+    "default_popup": "popup.html"
+  },
+  "host_permissions": [
+    "<all_urls>",
+    "http://127.0.0.1:8000/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true,
+      "match_origin_as_fallback": true
+    }
+  ]
+}

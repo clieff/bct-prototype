@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BCT - Démo Mobile Money</title>
+    <!-- CHEMIN CORRIGÉ ICI (slash au début) -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="phone">
+        <h2>🌍 BCT Mobile Money</h2>
+
+        <div class="input-group">
+            <label>Langue cible :</label>
+            <select id="lang">
+                <option value="ewondo">Ewondo</option>
+                <option value="fulfulde">Fulfulde</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Bénéficiaire :</label>
+            <input type="text" id="beneficiary" maxlength="100" placeholder="Ex: Jean" value="Jean">
+        </div>
+
+        <div class="input-group">
+            <label>Montant (FCFA) :</label>
+            <input type="number" id="amount" min="1" max="10000000" step="1" placeholder="Ex: 3500" value="3500">
+        </div>
+
+        <button id="send-btn" onclick="envoyerTransaction()">Envoyer l'argent</button>
+        <button id="mic-btn" onclick="dicterTexte()" style="background-color: #555;">🎤 Dicter une phrase</button>
+        <p id="transfer-status" class="form-status" role="status" aria-live="polite"></p>
+
+        <dialog id="transfer-review" aria-labelledby="review-title">
+            <h3 id="review-title">Vérifiez avant l’envoi</h3>
+            <p id="review-text"></p>
+            <p class="review-label">Récapitulatif :</p>
+            <div id="review-code" class="code-visual"></div>
+            <button id="review-audio-btn" class="audio-btn" type="button">🔊 Écouter le récapitulatif</button>
+            <p id="review-audio-status" role="status" aria-live="polite"></p>
+            <p id="review-status" role="status" aria-live="polite"></p>
+            <div class="dialog-actions">
+                <button id="cancel-transfer-btn" type="button">Annuler</button>
+                <button id="confirm-transfer-btn" type="button">Confirmer et envoyer</button>
+            </div>
+        </dialog>
+
+        <div id="result-box" class="result-box">
+            <h3 id="status-text"></h3>
+
+            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Confirmation Audio :</p>
+            <p id="audio-text" style="font-style: italic;"></p>
+
+            <button id="audio-btn" class="audio-btn">🔊 Écouter la confirmation</button>
+            <p id="audio-status" role="status" aria-live="polite"></p>
+
+            <p style="font-size: 12px; color: #666; margin: 15px 0 5px 0;">Code visuel (vérification) :</p>
+            <div id="visual-code" class="code-visual"></div>
+        </div>
+    </div>
+
+
+    <!-- CHEMIN CORRIGÉ ICI (slash au début) -->
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

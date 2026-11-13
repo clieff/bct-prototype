@@ -1,0 +1,139 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.phone {
+  background: white;
+  width: 350px;
+  height: 650px;
+  border-radius: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+h2 {
+  text-align: center;
+  color: #2e7d32;
+  margin-top: 0;
+}
+.input-group {
+  margin-bottom: 15px;
+}
+label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #555;
+}
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+button:hover {
+  background-color: #1b5e20;
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.form-status {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  color: #8b1e1e;
+  font-size: 13px;
+}
+dialog {
+  box-sizing: border-box;
+  width: min(390px, calc(100vw - 32px));
+  max-width: none;
+  border: 0;
+  border-radius: 16px;
+  padding: 20px;
+  color: #253128;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+dialog::backdrop {
+  background: rgba(18, 28, 20, 0.58);
+}
+dialog h3 {
+  margin: 0 0 10px;
+  color: #1b5e20;
+}
+dialog p {
+  line-height: 1.45;
+}
+.review-label {
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.dialog-actions {
+  display: flex;
+  gap: 10px;
+}
+.dialog-actions button {
+  flex: 1;
+  font-size: 14px;
+}
+#cancel-transfer-btn {
+  background: #626b64;
+}
+#cancel-transfer-btn:hover {
+  background: #454c47;
+}
+#review-status {
+  color: #8b1e1e;
+  font-size: 13px;
+}
+.result-box {
+  margin-top: 20px;
+  padding: 15px;
+  background: #e8f5e9;
+  border-left: 5px solid #2e7d32;
+  border-radius: 8px;
+  display: none;
+}
+.result-box h3 {
+  margin-top: 0;
+  color: #1b5e20;
+  font-size: 16px;
+}
+.audio-btn {
+  background-color: #1976d2;
+  margin-top: 10px;
+}
+.audio-btn:hover {
+  background-color: #115293;
+}
+.code-visual {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 15px;
+  background: white;
+  padding: 8px;
+  border-radius: 5px;
+  text-align: center;
+  margin-top: 10px;
+}

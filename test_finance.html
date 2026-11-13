@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Afriland First Bank — Simulateur de test</title>
+  <style>
+    body {
+      padding: 20px;
+      background: #eee;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgb(0 0 0 / 10%);
+    }
+    h1 {
+      border-bottom: 2px solid #b31b1b;
+      padding-bottom: 10px;
+      color: #b31b1b;
+    }
+    .card {
+      margin-bottom: 15px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .amount {
+      color: #333;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: 0;
+      border-radius: 4px;
+      background: #b31b1b;
+      color: white;
+      cursor: pointer;
+    }
+    .message-input {
+      width: 70%;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Afriland First Bank (Simulateur)</h1>
+
+    <section class="card">
+      <p>Bonjour Jean, voici votre récapitulatif.</p>
+      <p>Votre solde actuel est de : <span class="amount">125 000 FCFA</span></p>
+    </section>
+
+    <section class="card">
+      <h2>Virement en cours</h2>
+      <p>Bénéficiaire : Marie</p>
+      <p>Montant du transfert : <span class="amount">25 000 FCFA</span></p>
+      <p>Frais de transfert : <span class="amount">500 FCFA</span></p>
+      <button class="btn" type="button">Confirmer le transfert</button>
+    </section>
+
+    <section class="card">
+      <h2>Boîte de réception (test de contenu inédit)</h2>
+      <p id="inbox">Aucun nouveau message.</p>
+      <label for="customMessage">Message à injecter</label>
+      <input class="message-input" type="text" id="customMessage"
+        placeholder="Ex. : Alerte, frais de 2 000 FCFA">
+      <button class="btn" id="inject" type="button">Injecter</button>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("inject").addEventListener("click", () => {
+      document.getElementById("inbox").textContent =
+        document.getElementById("customMessage").value.trim() || "Aucun nouveau message.";
+    });
+  </script>
+</body>
+</html>

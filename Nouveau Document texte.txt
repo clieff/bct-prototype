@@ -1,0 +1,56 @@
+# CONTEXTE DU PROJET : BCT (Bouclier de Confiance Transactionnelle)
+
+Tu es un développeur expert en Python (FastAPI) et en JavaScript. Tu m'aides à finaliser un projet de concours tech : une couche d'accessibilité linguistique pour les services financiers au Cameroun.
+
+Le but du projet est de traduire des transactions Mobile Money en langues locales (Ewondo, Fulfulde) tout en garantissant la sécurité des données sensibles (montants, bénéficiaires) via un mécanisme de "Glossaire Verrouillé" et une "Confirmation Anchor" (audio + code visuel).
+
+## 🛠️ STACK TECHNIQUE ACTUELLE
+- Python 3.12
+- FastAPI + Uvicorn (Backend)
+- Pydantic (Schémas de données)
+- Hugging Face `transformers` + `torch` (Modèle MarianMT pour le NLP)
+- `gTTS` (Google Text-to-Speech pour l'audio)
+- HTML/CSS/JS Vanilla (Frontend de démo dans le dossier `/static`)
+
+## 📁 ARCHITECTURE ACTUELLE DU PROJET
+Le projet est structuré ainsi :
+- `app/main.py` : Le serveur FastAPI (endpoints `/translate`, `/transfer`, `/balance`, `/speak`).
+- `app/core/glossary.py` : Charge le glossaire JSON.
+- `app/core/entity_detector.py` : Extrait les montants, numéros et termes du glossaire via Regex.
+- `app/core/translator.py` : Pipeline de traduction. Il verrouille les termes du glossaire (remplace par `<<terme>>`) et utilise MarianMT pour traduire le reste du texte. (Actuellement, le modèle de test est "Helsinki-NLP/opus-mt-fr-en").
+- `app/services/mock_financial.py` : Simule un compte Mobile Money et calcule les frais.
+- `data/glossary_financial.json` : Dictionnaire de termes financiers (FR/EN) avec les colonnes Ewondo/Fulfulde marquées "TODO_VALIDATE".
+- `static/` : Interface de démo (index.html, style.css, app.js). L'interface simule un téléphone avec un formulaire d'envoi d'argent.
+
+## ✅ CE QUI EST DÉJÀ FAIT
+1. L'API fonctionne, le service financier simulé renvoie un statut "success" et calcule les frais.
+2. Le système détecte les entités (ex: "3500", "677123456") et les protège.
+3. La "Confirmation Anchor" génère un texte audio (via gTTS) et un code visuel.
+4. Le frontend permet de faire une transaction et d'écouter l'audio généré par le serveur.
+
+## 🎯 TES PROCHAINES MISSIONS (À FAIRE DANS L'ORDRE)
+
+### MISSION 1 : Créer l'Extension Navigateur (Chrome/Edge Manifest V3)
+C'est la démo "Wow" pour le jury. L'extension doit s'activer sur n'importe quelle page web (ex: un faux site Mobile Money) et traduire le texte financier en surbrillance.
+**Fichiers à créer dans un dossier `extension/` :**
+1. `manifest.json` : Configuration de l'extension.
+2. `content.js` : Script qui scanne la page web, détecte les mots financiers (solde, transfert, FCFA), envoie le texte à notre API (`http://127.0.0.1:8000/translate`) et injecte un encadré vert avec la traduction.
+3. `popup.html` et `popup.js` : Pour activer/désactiver l'extension et choisir la langue.
+4. `background.js` : Pour faire les appels API en arrière-plan et gérer le cache.
+**Contrainte :** L'extension doit utiliser l'API existante sans la modifier.
+
+### MISSION 2 : Améliorer le Frontend (Reconnaissance Vocale / ASR)
+Dans `static/app.js`, il y a un bouton "Dicter une phrase" qui utilise l'API Web Speech actuellement. 
+Améliore la fonction `dicterTexte()` pour qu'elle extraie automatiquement le montant et le nom de la phrase dictée (ex: l'utilisateur dit "Envoyer 3500 francs à Paul", le script doit remplir automatiquement les champs `#amount` et `#beneficiary`).
+
+### MISSION 3 : Préparer l'intégration des vraies langues camerounaises
+Dans `app/core/translator.py`, on utilise MarianMT (`Helsinki-NLP/opus-mt-fr-en`) comme preuve de concept. 
+Prépare une fonction `load_cameroon_model(langue_cible)` qui, à terme, chargera un modèle Hugging Face spécifique (ex: `flagship-ai/marian-fr-ewondo`). Ne l'exécute pas encore si le modèle n'existe pas, mais structure le code pour qu'il soit prêt.
+
+## ⚠️ RÈGLES POUR TOI (CODEX)
+- Ne casse pas le mécanisme de "Glossaire Verrouillé" (le système de remplacement `<<terme>>`).
+- Utilise des commentaires clairs en français dans le code.
+- Fournis le code complet des fichiers, pas juste des extraits, pour que je puisse faire un simple copier-coller.
+- Sois concis dans tes explications.
+
+**Commence par la MISSION 1 (L'extension navigateur) : Donne-moi le contenu complet des fichiers `manifest.json`, `content.js`, et `popup.html`.**
