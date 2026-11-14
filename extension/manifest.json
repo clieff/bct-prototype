@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "BCT — Bouclier de Confiance Transactionnelle",
+  "name": "TALK AFRICA — Accessibilité linguistique",
   "version": "0.1.4",
   "description": "Traduit les textes visibles des pages web.",
   "permissions": ["storage"],
@@ -8,7 +8,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "BCT — Traduction",
+    "default_title": "TALK AFRICA — Traduction",
     "default_popup": "popup.html"
   },
   "host_permissions": [

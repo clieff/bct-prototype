@@ -1,4 +1,4 @@
-# CONTEXTE DU PROJET : BCT (Bouclier de Confiance Transactionnelle)
+# CONTEXTE DU PROJET : TALK AFRICA — Accessibilité linguistique
 
 Tu es un développeur expert en Python (FastAPI) et en JavaScript. Tu m'aides à finaliser un projet de concours tech : une couche d'accessibilité linguistique pour les services financiers au Cameroun.
 

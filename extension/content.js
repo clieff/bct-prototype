@@ -2,14 +2,14 @@
   "use strict";
 
   // Parcourt le texte DOM de la page ; les valeurs saisies dans les champs restent intactes.
-  const TEXT_EXCLUSION_SELECTOR = "input, textarea, [contenteditable]:not([contenteditable='false']), script, style, noscript, template, [hidden], [aria-hidden='true'], [data-bct-translation]";
-  const ATTRIBUTE_EXCLUSION_SELECTOR = "script, style, noscript, template, [hidden], [aria-hidden='true'], [data-bct-translation]";
+  const TEXT_EXCLUSION_SELECTOR = "input, textarea, [contenteditable]:not([contenteditable='false']), script, style, noscript, template, [hidden], [aria-hidden='true'], [data-talk-africa-translation]";
+  const ATTRIBUTE_EXCLUSION_SELECTOR = "script, style, noscript, template, [hidden], [aria-hidden='true'], [data-talk-africa-translation]";
   const TRANSLATABLE_ATTRIBUTES = [
     "title", "aria-label", "aria-description", "aria-placeholder", "aria-roledescription", "aria-valuetext",
     "alt", "placeholder", "value", "label", "data-tooltip", "data-bs-title", "data-original-title", "data-tippy-content"
   ];
-  const TRANSLATION_ATTRIBUTE = "data-bct-translation";
-  const ORIGINAL_ATTRIBUTE = "data-bct-original";
+  const TRANSLATION_ATTRIBUTE = "data-talk-africa-translation";
+  const ORIGINAL_ATTRIBUTE = "data-talk-africa-original";
   const MAX_TRANSLATION_REQUEST_LENGTH = 1800;
   const MAX_TRANSLATION_CACHE_ENTRIES = 500;
   // L'API traduit chaque élément séquentiellement ; de petits lots gardent
@@ -99,14 +99,14 @@
   let textTranslationMarkers = new WeakMap();
 
   function isExtensionContextError(error) {
-    if (error?.code === "BCT_EXTENSION_CONTEXT_INVALIDATED") return true;
+    if (error?.code === "TALK_AFRICA_EXTENSION_CONTEXT_INVALIDATED") return true;
     const message = typeof error?.message === "string" ? error.message : String(error || "");
     return /extension context invalidated|message channel closed|message port closed|receiving end does not exist|cannot read properties of undefined.*sendmessage/i.test(message);
   }
 
   function createExtensionContextError() {
-    const error = new Error("Le contexte BCT a été rechargé ; actualisez cette page.");
-    error.code = "BCT_EXTENSION_CONTEXT_INVALIDATED";
+    const error = new Error("Le contexte TALK AFRICA a été rechargé ; actualisez cette page.");
+    error.code = "TALK_AFRICA_EXTENSION_CONTEXT_INVALIDATED";
     return error;
   }
 
@@ -142,7 +142,7 @@
       try {
         callback(response);
       } catch (error) {
-        console.error("BCT Callback Error:", error);
+        console.error("TALK AFRICA Callback Error:", error);
       }
     };
 
@@ -164,7 +164,7 @@
           } catch (error) {
             result = { error: error.message || "Extension context invalidated" };
           }
-          if (!result) result = { error: "Réponse vide du service worker BCT." };
+          if (!result) result = { error: "Réponse vide du service worker TALK AFRICA." };
           if (isExtensionContextError(new Error(result.error || ""))) {
             invalidateExtensionContext(new Error(result.error));
           }
@@ -172,7 +172,7 @@
         });
       } catch (error) {
         if (isExtensionContextError(error)) invalidateExtensionContext(error);
-        resolve({ error: error.message || "Impossible d’envoyer le message BCT." });
+        resolve({ error: error.message || "Impossible d’envoyer le message TALK AFRICA." });
       }
     });
 
@@ -442,7 +442,7 @@
         link.setAttribute("aria-disabled", "true");
 
         const response = await sendMessageSafely({
-          type: "BCT_SPEAK",
+          type: "TALK_AFRICA_SPEAK",
           payload: { text: translatedText, target_lang: targetLang }
         });
         if (!response?.audioBase64) {
@@ -471,7 +471,7 @@
           invalidateExtensionContext(error);
           return;
         }
-        console.warn("BCT : lecture audio indisponible.", error);
+        console.warn("TALK AFRICA : lecture audio indisponible.", error);
         try {
           link.title = error?.message || "Audio indisponible";
           link.setAttribute("aria-label", link.title);
@@ -555,7 +555,7 @@
           });
         }
       } catch (error) {
-        console.warn("BCT : impossible de restaurer un nœud texte.", error);
+        console.warn("TALK AFRICA : impossible de restaurer un nœud texte.", error);
       }
       element.removeAttribute(ORIGINAL_ATTRIBUTE);
     });
@@ -580,7 +580,7 @@
 
     const batch = pendingTranslations.splice(0, TRANSLATION_BATCH_SIZE);
     sendMessageSafely({
-      type: "BCT_TRANSLATE_BATCH",
+      type: "TALK_AFRICA_TRANSLATE_BATCH",
       payload: {
         items: batch.map(({ text, sourceLang, targetLang }) => ({
           text,
@@ -758,7 +758,7 @@
           }
           if (records.get(attributeName) === record) records.delete(attributeName);
           if (records.size === 0) translatedAttributeElements.delete(element);
-          console.warn(`BCT : traduction indisponible pour l’attribut ${attributeName}.`, error);
+          console.warn(`TALK AFRICA : traduction indisponible pour l’attribut ${attributeName}.`, error);
         });
     }
   }
@@ -818,7 +818,7 @@
         return;
       }
       // Une panne API ne doit jamais interrompre le site tiers.
-      console.warn("BCT : traduction indisponible pour ce nœud texte.", error);
+      console.warn("TALK AFRICA : traduction indisponible pour ce nœud texte.", error);
       if (settings.enabled && settings.displayMode === "overlay" &&
           settings.targetLang === targetLang && textNode.isConnected && isContextValid()) {
         try {

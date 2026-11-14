@@ -73,7 +73,7 @@ function isValidTranslationItem(item) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message || !["BCT_TRANSLATE", "BCT_TRANSLATE_BATCH", "BCT_SPEAK"].includes(message.type)) {
+  if (!message || !["TALK_AFRICA_TRANSLATE", "TALK_AFRICA_TRANSLATE_BATCH", "TALK_AFRICA_SPEAK"].includes(message.type)) {
     return false;
   }
 
@@ -85,18 +85,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse(response);
     } catch (error) {
       // Le canal peut déjà être fermé si Chrome a rechargé l'extension.
-      console.warn("BCT : canal de réponse fermé.", error);
+      console.warn("TALK AFRICA : canal de réponse fermé.", error);
     }
   };
-  const respondWithError = (error, fallbackMessage = "Impossible de contacter le serveur BCT.") => {
-    console.error("BCT Background Error:", error);
+  const respondWithError = (error, fallbackMessage = "Impossible de contacter le serveur TALK AFRICA.") => {
+    console.error("TALK AFRICA Background Error:", error);
     respondOnce({ error: error?.message || fallbackMessage });
   };
 
   try {
     const payload = message.payload || {};
 
-    if (message.type === "BCT_SPEAK") {
+    if (message.type === "TALK_AFRICA_SPEAK") {
       const text = typeof payload.text === "string" ? payload.text.trim() : "";
       const targetLang = payload.target_lang;
       const langCode = targetLang === "ewondo" ? "ewo" : targetLang === "fulfulde" ? "ful" : null;
@@ -111,7 +111,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
-    if (message.type === "BCT_TRANSLATE_BATCH") {
+    if (message.type === "TALK_AFRICA_TRANSLATE_BATCH") {
       const items = Array.isArray(payload.items) ? payload.items : [];
       if (items.length === 0 || items.length > 20 || !items.every(isValidTranslationItem)) {
         respondOnce({ error: "Demande groupée de traduction invalide." });

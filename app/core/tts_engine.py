@@ -7,16 +7,11 @@ import logging
 from pathlib import Path
 from threading import Lock
 
-from .model_validation import has_valid_model_files, is_valid_model_file
-
 logger = logging.getLogger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+LOCAL_TTS_MODEL_DIR = PROJECT_ROOT / "models" / "africa-tts"
 TTS_REPO_ID = "AfriSpeech/africa-tts"
 TTS_MODEL_FILES = ("config.yaml", "model.safetensors", "tokenizer.json")
-TTS_MODEL_FILE_MIN_SIZES = {
-    "config.yaml": 100,
-    "model.safetensors": 1_000_000,
-    "tokenizer.json": 1_000,
-}
 
 # Les noms utilisés par l'interface sont convertis en codes ISO 639-3.
 LANGUAGE_ALIASES = {
@@ -55,40 +50,6 @@ def _normalize_language_code(lang_code: str) -> str:
     return LANGUAGE_ALIASES.get(normalized, normalized)
 
 
-def _valid_tts_directory(directory: Path) -> bool:
-    voices_dir = directory / "voices"
-    voices = list(voices_dir.rglob("*.wav")) if voices_dir.is_dir() else []
-    return (
-        has_valid_model_files(directory, TTS_MODEL_FILE_MIN_SIZES)
-        and any(
-            voice.name == "ewo.wav" and is_valid_model_file(voice, 1_000)
-            for voice in voices
-        )
-        and all(is_valid_model_file(voice, 1_000) for voice in voices)
-    )
-
-
-def prepare_model_cache() -> Path:
-    """Download and validate Africa TTS in Hugging Face's default model cache."""
-    from huggingface_hub import snapshot_download
-
-    allow_patterns = [*TTS_MODEL_FILES, "voices/*.wav"]
-    snapshot_path = Path(
-        snapshot_download(repo_id=TTS_REPO_ID, allow_patterns=allow_patterns)
-    )
-    if not _valid_tts_directory(snapshot_path):
-        snapshot_path = Path(
-            snapshot_download(
-                repo_id=TTS_REPO_ID,
-                allow_patterns=allow_patterns,
-                force_download=True,
-            )
-        )
-    if not _valid_tts_directory(snapshot_path):
-        raise FileNotFoundError("Le modèle Africa TTS téléchargé est incomplet ou invalide.")
-    return snapshot_path
-
-
 def _get_engine():
     global _engine
     if _engine is None:
@@ -96,13 +57,28 @@ def _get_engine():
             if _engine is None:
                 try:
                     from africa_tts import AfricaTTS
-                    prepare_model_cache()
-                    _engine = AfricaTTS.load(name=TTS_REPO_ID, download=True)
+                    from huggingface_hub import snapshot_download
+
+                    model_is_ready = (
+                        all((LOCAL_TTS_MODEL_DIR / name).is_file() for name in TTS_MODEL_FILES)
+                        and any((LOCAL_TTS_MODEL_DIR / "voices").glob("*.wav"))
+                    )
+                    if not model_is_ready:
+                        snapshot_download(
+                            repo_id=TTS_REPO_ID,
+                            allow_patterns=[*TTS_MODEL_FILES, "voices/*.wav"],
+                            local_dir=str(LOCAL_TTS_MODEL_DIR),
+                        )
+
+                    _engine = AfricaTTS.load(
+                        name=str(LOCAL_TTS_MODEL_DIR),
+                        download=False,
+                    )
                 except Exception as error:
                     logger.exception("Impossible de charger Africa TTS.")
                     raise AudioGenerationError(
                         "Le moteur Africa TTS n'a pas pu charger son modèle vocal. "
-                        "Vérifiez l'accès au cache Hugging Face et la disponibilité du modèle."
+                        "Vérifiez que le modèle est présent dans le dossier models/."
                     ) from error
     return _engine
 

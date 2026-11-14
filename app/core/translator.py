@@ -12,35 +12,22 @@ from .entity_detector import (
     find_numeric_matches,
 )
 from .glossary import Glossary
-from .model_validation import has_valid_model_files
 
 
 logger = logging.getLogger(__name__)
 LanguagePair = Tuple[str, str]
-TRANSLATION_MODEL_FILE_MIN_SIZES = {
-    "config.json": 100,
-    "model.bin": 1_000_000,
-    "source.spm": 10_000,
-    "target.spm": 10_000,
-    "tokenizer_config.json": 100,
-    "vocab.json": 10_000,
-}
-TRANSFORMERS_MODEL_IDS = {
-    ("en", "fr"): "Helsinki-NLP/opus-mt-en-fr",
-    ("fr", "en"): "Helsinki-NLP/opus-mt-fr-en",
-}
-TRANSFORMERS_MODEL_FILES = (
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+LOCAL_MODELS_DIR = PROJECT_ROOT / "models"
+TRANSLATION_MODELS_DIR = LOCAL_MODELS_DIR / "flagship-ai" / "cameroon-int8"
+OPUS_EN_FR_MODEL_DIR = LOCAL_MODELS_DIR / "opus-mt-en-fr"
+TRANSLATION_MODEL_FILES = (
     "config.json",
-    "generation_config.json",
+    "model.bin",
     "source.spm",
     "target.spm",
     "tokenizer_config.json",
     "vocab.json",
 )
-TRANSFORMERS_MODEL_WEIGHTS = {
-    ("en", "fr"): "pytorch_model.bin",
-    ("fr", "en"): "model.safetensors",
-}
 
 
 class TranslationResult:
@@ -68,7 +55,6 @@ class LockedTranslator:
     # Le modèle appelle le Fulfulde « fufulde » dans le nom de dossier.
     DEFAULT_MODEL_PAIRS = {
         ("en", "fr"): "english-francais",
-        ("fr", "en"): "opus-mt-fr-en",
         ("fr", "ewondo"): "francais-ewondo",
         ("fr", "fulfulde"): "francais-fufulde",
         ("fr", "fufulde"): "francais-fufulde",
@@ -114,37 +100,6 @@ class LockedTranslator:
             else:
                 status[language] = "not_loaded"
         return status
-
-    def prepare_model_cache(self) -> None:
-        """Download every configured translation model into Hugging Face's default cache."""
-        from huggingface_hub import snapshot_download
-
-        jobs = [
-            (
-                model_id,
-                [*TRANSFORMERS_MODEL_FILES, TRANSFORMERS_MODEL_WEIGHTS[pair]],
-            )
-            for pair, model_id in TRANSFORMERS_MODEL_IDS.items()
-        ]
-        custom_folders = dict.fromkeys(
-            folder
-            for pair, folder in self.model_pairs.items()
-            if pair not in TRANSFORMERS_MODEL_IDS
-        )
-        jobs.extend(
-            (self.REPO_ID, [f"{folder}/*"])
-            for folder in custom_folders
-        )
-
-        for repo_id, allow_patterns in jobs:
-            try:
-                snapshot_download(repo_id=repo_id, allow_patterns=allow_patterns)
-            except Exception:
-                logger.exception(
-                    "Préchargement Hugging Face impossible pour %s (%s).",
-                    repo_id,
-                    ", ".join(allow_patterns),
-                )
 
     @staticmethod
     def _select_non_overlapping_spans(spans):
@@ -212,16 +167,43 @@ class LockedTranslator:
                 raise RuntimeError(self._model_errors[pair])
 
             folder = self.model_pairs.get(pair)
-            if not folder and pair not in TRANSFORMERS_MODEL_IDS:
+            if not folder:
                 raise LookupError("Aucun dossier de modèle n'est défini pour cette paire.")
 
             try:
-                if pair in TRANSFORMERS_MODEL_IDS:
+                if pair == ("en", "fr"):
+                    required_files = (
+                        "config.json",
+                        "generation_config.json",
+                        "pytorch_model.bin",
+                        "source.spm",
+                        "target.spm",
+                        "tokenizer_config.json",
+                        "vocab.json",
+                    )
+                    missing_files = [
+                        name
+                        for name in required_files
+                        if not (OPUS_EN_FR_MODEL_DIR / name).is_file()
+                    ]
+                    if missing_files:
+                        raise FileNotFoundError(
+                            "Le modèle anglais→français local est absent ou incomplet dans "
+                            f"{OPUS_EN_FR_MODEL_DIR}. Lancez « python scripts/download_models.py » "
+                            f"avant de démarrer la démonstration (fichiers manquants : "
+                            f"{', '.join(missing_files)})."
+                        )
+
                     from transformers import MarianMTModel, MarianTokenizer
 
-                    model_id = TRANSFORMERS_MODEL_IDS[pair]
-                    tokenizer = MarianTokenizer.from_pretrained(model_id)
-                    model = MarianMTModel.from_pretrained(model_id)
+                    tokenizer = MarianTokenizer.from_pretrained(
+                        str(OPUS_EN_FR_MODEL_DIR),
+                        local_files_only=True,
+                    )
+                    model = MarianMTModel.from_pretrained(
+                        str(OPUS_EN_FR_MODEL_DIR),
+                        local_files_only=True,
+                    )
                     model.eval()
                     self._models[pair] = (tokenizer, model)
                     self._model_errors.pop(pair, None)
@@ -231,41 +213,32 @@ class LockedTranslator:
                 from huggingface_hub import snapshot_download
                 from transformers import MarianTokenizer
 
+                # Le dossier du projet est la source prioritaire et le stockage durable.
                 allow_patterns = [f"{folder}/*"]
-                snapshot_path = snapshot_download(
-                    repo_id=self.REPO_ID,
-                    allow_patterns=allow_patterns,
-                )
-                model_path = Path(snapshot_path) / folder
+                model_path = TRANSLATION_MODELS_DIR / folder
                 model_is_ready = (
                     model_path.is_dir()
                     and ctranslate2.contains_model(str(model_path))
-                    and has_valid_model_files(
-                        model_path, TRANSLATION_MODEL_FILE_MIN_SIZES
-                    )
+                    and all((model_path / name).is_file() for name in TRANSLATION_MODEL_FILES)
                 )
                 if not model_is_ready:
                     snapshot_path = snapshot_download(
                         repo_id=self.REPO_ID,
                         allow_patterns=allow_patterns,
-                        force_download=True,
+                        local_dir=str(TRANSLATION_MODELS_DIR),
                     )
                     model_path = Path(snapshot_path) / folder
-                    model_is_ready = (
-                        model_path.is_dir()
-                        and ctranslate2.contains_model(str(model_path))
-                        and has_valid_model_files(
-                            model_path, TRANSLATION_MODEL_FILE_MIN_SIZES
-                        )
-                    )
+                model_is_ready = (
+                    model_path.is_dir()
+                    and ctranslate2.contains_model(str(model_path))
+                    and all((model_path / name).is_file() for name in TRANSLATION_MODEL_FILES)
+                )
                 if not model_is_ready:
-                    raise FileNotFoundError(
-                        f"Le dossier de modèle {folder} reste incomplet après téléchargement."
-                    )
+                    raise FileNotFoundError(f"Le dossier de modèle {folder} est incomplet.")
 
                 # Le tokenizer est fourni dans le même sous-dossier que model.bin.
                 tokenizer = MarianTokenizer.from_pretrained(
-                    self.REPO_ID, subfolder=folder
+                    str(model_path), local_files_only=True
                 )
                 translator = ctranslate2.Translator(
                     str(model_path),
@@ -417,7 +390,7 @@ class LockedTranslator:
         source_lang = source_lang.strip().lower()
         normalized_target = target_lang.strip().lower()
         target_lang = self.LANGUAGE_ALIASES.get(normalized_target, normalized_target)
-        if (source_lang, target_lang) != ("en", "ewondo"):
+        if source_lang != "en" or target_lang not in {"ewondo", "fulfulde"}:
             return self._translate_pair(
                 text, source_lang, target_lang, protected_terms, allow_short_segments
             )
@@ -433,12 +406,12 @@ class LockedTranslator:
             else ExtractedEntities()
         )
         direct_error = None
-        direct_pair = ("en", "ewondo")
+        direct_pair = ("en", target_lang)
 
         # Un modèle direct peut être ajouté via model_pairs sans changer le pipeline.
         if direct_pair in self.model_pairs:
             direct_result = self._translate_pair(
-                text, "en", "ewondo", protected_terms, allow_short_segments
+                text, "en", target_lang, protected_terms, allow_short_segments
             )
             if direct_result.error_code is None:
                 return direct_result
@@ -455,33 +428,39 @@ class LockedTranslator:
                 english_french.locked_terms,
                 "pivot_failed",
                 english_french.error_message
-                or "La traduction anglaise vers Ewondo a échoué pendant le passage par le français.",
+                or (
+                    "La traduction anglaise vers "
+                    f"{target_lang.capitalize()} a échoué pendant le passage par le français."
+                ),
             )
 
-        french_ewondo = self._translate_pair(
+        french_target = self._translate_pair(
             english_french.translated,
             "fr",
-            "ewondo",
+            target_lang,
             protected_terms,
             allow_short_segments,
         )
-        if french_ewondo.error_code:
+        if french_target.error_code:
             return self._fallback(
                 text,
                 entities,
-                french_ewondo.locked_terms,
+                french_target.locked_terms,
                 "pivot_failed",
-                "La traduction du français vers Ewondo a échoué ; le texte source est conservé.",
+                (
+                    "La traduction du français vers "
+                    f"{target_lang.capitalize()} a échoué ; le texte source est conservé."
+                ),
             )
 
         return TranslationResult(
-            translated=french_ewondo.translated,
-            locked_terms=french_ewondo.locked_terms,
+            translated=french_target.translated,
+            locked_terms=french_target.locked_terms,
             entities=entities,
             fallback_used=(
                 direct_error is not None
                 or english_french.fallback_used
-                or french_ewondo.fallback_used
+                or french_target.fallback_used
             ),
         )
 
@@ -560,7 +539,7 @@ class LockedTranslator:
 
                 if self._nmt is not None:
                     translate_segment = lambda chunk: self._nmt(chunk, target_lang)
-                elif pair in TRANSFORMERS_MODEL_IDS:
+                elif pair == ("en", "fr"):
                     translate_segment = lambda chunk: self._run_transformers(
                         self._models[pair], chunk
                     )

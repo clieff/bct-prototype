@@ -1,4 +1,131 @@
-INFO:     Started server process [24024]
+INFO:     Started server process [17080]
 INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Préchargement des modèles Africa TTS impossible.
+Traceback (most recent call last):
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\connection.py", line 239, in _new_conn
+    sock = connection.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\util\connection.py", line 85, in create_connection
+    raise err
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\util\connection.py", line 73, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\connectionpool.py", line 779, in urlopen
+    self._prepare_proxy(conn)
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\connectionpool.py", line 1074, in _prepare_proxy
+    conn.connect()
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\connection.py", line 827, in connect
+    self.sock = sock = self._new_conn()
+                       ^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\connection.py", line 254, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: HTTPSConnection(host='127.0.0.1', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée
+
+The above exception was the direct cause of the following exception:
+
+urllib3.exceptions.ProxyError: ('Unable to connect to proxy', NewConnectionError("HTTPSConnection(host='127.0.0.1', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée"))
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\connectionpool.py", line 847, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\urllib3\util\retry.py", line 555, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /api/models/AfriSpeech/africa-tts/revision/main (Caused by ProxyError('Unable to connect to proxy', NewConnectionError("HTTPSConnection(host='127.0.0.1', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\app\main.py", line 39, in prepare
+    await asyncio.to_thread(callback)
+  File "C:\Users\tched\AppData\Local\Programs\Python\Python312\Lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\app\core\tts_engine.py", line 77, in prepare_model_cache
+    snapshot_download(repo_id=TTS_REPO_ID, allow_patterns=allow_patterns)
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\_snapshot_download.py", line 165, in snapshot_download
+    repo_info = api.repo_info(repo_id=repo_id, repo_type=repo_type, revision=revision)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\hf_api.py", line 2867, in repo_info
+    return method(
+           ^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\hf_api.py", line 2660, in model_info
+    r = get_session().get(path, headers=headers, timeout=timeout, params=params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\requests\sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 96, in send
+    return super().send(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\.venv\Lib\site-packages\requests\adapters.py", line 723, in send
+    raise ProxyError(e, request=request)
+requests.exceptions.ProxyError: (MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/AfriSpeech/africa-tts/revision/main (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: c4bdc1b1-9c40-4384-9555-5f241fbe881e)')
+Chargement local impossible depuis C:\Users\tched\OneDrive\Documents\aaaaaaaaaaaaaaaaaa projet\bct-project\models\opus-mt-fr-en : Le dossier local est absent, incomplet, ou contient des fichiers trop petits/pointeurs Git LFS.
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 478c7f18-3ea5-4292-b0e0-08b462676024)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: cfc98375-562f-4037-8ea9-1031c4c9a3aa)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 8adf56c5-9057-43de-a69d-90aeb0cfa919)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 62a8ff79-b479-491a-815c-9d93ffd9a84e)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: a9fe8300-d32e-4eb9-a27c-5a574aa18a90)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: f8b73c95-e6e2-4a26-924d-25bcfab7ab48)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/tokenizer_config.json
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: bfdbcda0-53e1-49bb-a67b-a3ec220029a4)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 8397ab0f-abd3-41dd-918b-112e7270a71a)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 803524e3-e9d1-4593-8d0e-f0757e5afc6f)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 460868a9-4f16-4e03-9fd2-df4206d91d9f)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 3831c9c2-ab56-4dc4-924b-b965c7dd9dd6)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 9dd3e382-ad77-488f-9b4c-8d4717ee68ba)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 0c91aa2d-25b9-4d4d-95d4-e858571086da)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 6eb4cd5e-41a8-467b-83eb-19594a5d1772)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 5148211d-0773-457f-aa91-b3de39916992)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: d1214732-802c-44ec-a090-243487f4dcba)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: b978575a-be4b-404b-9187-167f0c5cfc1a)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 651dde98-d8fd-4592-9991-5a7307da3b29)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/config.json
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/generation_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 2015dd81-7c50-4598-8452-769aa0c6a957)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/generation_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/generation_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 344b096e-8b8d-43e6-bb32-62b8023a0e27)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/generation_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Helsinki-NLP/opus-mt-fr-en/resolve/main/generation_config.json (Caused by ProxyError(\'Unable to connect to proxy\', NewConnectionError("HTTPSConnection(host=\'127.0.0.1\', port=9): Failed to establish a new connection: [WinError 10061] Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée")))'), '(Request ID: 7eda9e90-69e0-43ab-8c8c-4fc0c177860e)')' thrown while requesting HEAD https://huggingface.co/Helsinki-NLP/opus-mt-fr-en/resolve/main/generation_config.json
+Retrying in 4s [Retry 3/5].
