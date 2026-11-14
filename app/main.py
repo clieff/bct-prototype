@@ -30,6 +30,12 @@ _PENDING_TRANSFERS = {}
 _PENDING_TRANSFERS_LOCK = Lock()
 
 
+@app.on_event("startup")
+def load_required_local_translation_model():
+    """Fail API startup if the required local EN→FR model cannot load."""
+    translator.load_required_english_french_model()
+
+
 @app.get("/")
 def home():
     """Affiche la démo TALK AFRICA quand on ouvre directement l'adresse du serveur."""

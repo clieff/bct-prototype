@@ -16,10 +16,11 @@ from .glossary import Glossary
 
 logger = logging.getLogger(__name__)
 LanguagePair = Tuple[str, str]
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-LOCAL_MODELS_DIR = PROJECT_ROOT / "models"
+BASE_DIR = Path(__file__).resolve().parents[2]
+MODEL_PATH = str(BASE_DIR / "models" / "opus-mt-en-fr")
+LOCAL_MODELS_DIR = BASE_DIR / "models"
 TRANSLATION_MODELS_DIR = LOCAL_MODELS_DIR / "flagship-ai" / "cameroon-int8"
-OPUS_EN_FR_MODEL_DIR = LOCAL_MODELS_DIR / "opus-mt-en-fr"
+OPUS_EN_FR_MODEL_DIR = Path(MODEL_PATH)
 TRANSLATION_MODEL_FILES = (
     "config.json",
     "model.bin",
@@ -28,6 +29,19 @@ TRANSLATION_MODEL_FILES = (
     "tokenizer_config.json",
     "vocab.json",
 )
+
+
+def _print_model_log(message: str, stream=None) -> None:
+    """Print model diagnostics even when the console cannot encode emoji."""
+    import sys
+
+    output = stream or sys.stdout
+    try:
+        print(message, file=output)
+    except UnicodeEncodeError:
+        encoding = getattr(output, "encoding", None) or "utf-8"
+        printable = message.encode(encoding, errors="backslashreplace").decode(encoding)
+        print(printable, file=output)
 
 
 class TranslationResult:
@@ -172,41 +186,52 @@ class LockedTranslator:
 
             try:
                 if pair == ("en", "fr"):
-                    required_files = (
-                        "config.json",
-                        "generation_config.json",
-                        "pytorch_model.bin",
-                        "source.spm",
-                        "target.spm",
-                        "tokenizer_config.json",
-                        "vocab.json",
-                    )
-                    missing_files = [
-                        name
-                        for name in required_files
-                        if not (OPUS_EN_FR_MODEL_DIR / name).is_file()
-                    ]
-                    if missing_files:
-                        raise FileNotFoundError(
-                            "Le modèle anglais→français local est absent ou incomplet dans "
-                            f"{OPUS_EN_FR_MODEL_DIR}. Lancez « python scripts/download_models.py » "
-                            f"avant de démarrer la démonstration (fichiers manquants : "
-                            f"{', '.join(missing_files)})."
+                    _print_model_log(f"⏳ Chargement du modèle depuis : {MODEL_PATH}")
+                    try:
+                        required_files = (
+                            "config.json",
+                            "generation_config.json",
+                            "pytorch_model.bin",
+                            "source.spm",
+                            "target.spm",
+                            "tokenizer_config.json",
+                            "vocab.json",
                         )
+                        missing_files = [
+                            name
+                            for name in required_files
+                            if not (OPUS_EN_FR_MODEL_DIR / name).is_file()
+                        ]
+                        if missing_files:
+                            raise FileNotFoundError(
+                                f"Le modèle EN→FR local est absent ou incomplet : {MODEL_PATH}. "
+                                f"Fichiers manquants : {', '.join(missing_files)}."
+                            )
 
-                    from transformers import MarianMTModel, MarianTokenizer
+                        from transformers import MarianMTModel, MarianTokenizer
 
-                    tokenizer = MarianTokenizer.from_pretrained(
-                        str(OPUS_EN_FR_MODEL_DIR),
-                        local_files_only=True,
-                    )
-                    model = MarianMTModel.from_pretrained(
-                        str(OPUS_EN_FR_MODEL_DIR),
-                        local_files_only=True,
-                    )
-                    model.eval()
+                        tokenizer = MarianTokenizer.from_pretrained(
+                            MODEL_PATH, local_files_only=True
+                        )
+                        model = MarianMTModel.from_pretrained(
+                            MODEL_PATH, local_files_only=True
+                        )
+                        model.eval()
+                    except Exception:
+                        import io
+                        import sys
+                        import traceback
+
+                        _print_model_log(
+                            "❌ ERREUR CRITIQUE DE CHARGEMENT DU MODELE :", stream=sys.stderr
+                        )
+                        traceback_output = io.StringIO()
+                        traceback.print_exc(file=traceback_output)
+                        _print_model_log(traceback_output.getvalue(), stream=sys.stderr)
+                        raise
                     self._models[pair] = (tokenizer, model)
                     self._model_errors.pop(pair, None)
+                    _print_model_log("✅ Modèle chargé avec succès !")
                     return self._models[pair]
 
                 import ctranslate2
@@ -256,6 +281,10 @@ class LockedTranslator:
                     pair[0], pair[1], folder, error,
                 )
                 raise
+
+    def load_required_english_french_model(self):
+        """Load the required local EN→FR model during application startup."""
+        return self._load_model(("en", "fr"))
 
     @staticmethod
     def _run_ctranslate2(model_bundle, text: str) -> str:
