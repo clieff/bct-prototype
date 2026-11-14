@@ -303,23 +303,34 @@ class LockedTranslator:
 
     @staticmethod
     def _run_transformers(model_bundle, text: str) -> str:
-        import torch
+        try:
+            import torch
 
-        tokenizer, model = model_bundle
-        inputs = tokenizer(
-            text,
-            return_tensors="pt",
-            truncation=True,
-            max_length=512,
-        )
-        with torch.inference_mode():
-            output_ids = model.generate(
-                **inputs,
-                num_beams=4,
-                max_new_tokens=256,
-                renormalize_logits=True,
+            tokenizer, model = model_bundle
+            inputs = tokenizer(
+                text,
+                return_tensors="pt",
+                truncation=True,
+                max_length=512,
             )
-        return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+            with torch.inference_mode():
+                output_ids = model.generate(
+                    **inputs,
+                    num_beams=4,
+                    max_new_tokens=256,
+                    renormalize_logits=True,
+                )
+            return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+        except Exception:
+            import io
+            import sys
+            import traceback
+
+            _print_model_log("❌ ERREUR D'INFERENCE NMT :", stream=sys.stderr)
+            error_trace = io.StringIO()
+            traceback.print_exc(file=error_trace)
+            _print_model_log(error_trace.getvalue().rstrip(), stream=sys.stderr)
+            raise
 
     @staticmethod
     def _has_translatable_content(text: str, allow_short_segments: bool = False) -> bool:
